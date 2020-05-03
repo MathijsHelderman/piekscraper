@@ -4,7 +4,7 @@
 # 22/04/2020, 20:30 - 22.30
 # 24/04/2020, 23:30 - 00.00
 # 25/04/2020, 20:30 - 23:00
-# next todo: clean up data, split estimate 
+# 03/04/2020, 21:00 - 01:00
 
 # AUCTION ID's (30)
 # https://www.phillips.com/auctions/auction/NY080119
@@ -135,13 +135,14 @@ for auction_id in range(len(auctions_list)):
     for lot_index in range(auctions_list[auction_id].number_of_lots):
         # GET_PAGE()
         # van 1 tot number_of_lots
-        res = auctions_list[auction_id].url.rsplit("/", 1)
-        lot_id = int(res[1]) + lot_index
-        url = res[0] + "/" + str(lot_id)
+        res = auctions_list[auction_id].url.rsplit("/", 1) #https://www.phillips.com/detail/blancpain/HK080218/801 => #https://www.phillips.com/detail/blancpain/HK080218
+        lot_id = int(res[1]) + lot_index #lot_id = 801 + 1
+        url = res[0] + "/" + str(lot_id) #https://www.phillips.com/detail/blancpain/HK080218/802
         print(url)
         page = requests.get(url)
         soup = BeautifulSoup(page.content, 'html.parser')
 
+           
         try:
             info_elements = soup.find("ul", class_="info-list").find("li").find("p").find_all("span")
         except Exception as inst:
@@ -216,25 +217,25 @@ for auction_id in range(len(auctions_list)):
             print("WARNING: No lot on lot_id: " + str(lot_id) + " and " + "auction_id: " + str(auction_id))
 
         if sold_for.startswith('sold for'):
-            watch.sold_for = sold_for[-8:]
+            watch.sold_for = sold_for[-8:] # i: "SOLD FOR $23,000" => o: "$23,000"
         else:
             print("WARNING: Irregular sold_For on lot_id: " + str(lot_id) + " and " + "auction_id: " + str(auction_id))
             watch.sold_for = sold_for
-
+            
+        #TODO: should be fixed    
         estimate_element = soup.find("p", class_="lot-detail-header__estimate")
         if estimate_element is not None:
             watch.estimate_minimum = "$" + estimate_element.contents[4]
             watch.estimate_maximum = "$" + estimate_element.contents[8]
         else: 
-
             watch.estimate_minimum = "Estimate on Request" 
             watch.estimate_maximum = "Estimate on Request" 
 
-        date_sold = soup.find("div", class_="sale-title-banner").find("a").find("span").get_text()
-        regExp_result = re.search(r"\d", date_sold)
+        date_sold = soup.find("div", class_="sale-title-banner").find("a").find("span").get_text() # "NEW YORK AUCTION 10 DECEMBER 2019"
+        regExp_result = re.search(r"\d", date_sold) # Search for all the digit occurences in this string 
         if regExp_result is not None:
-            digit_position = regExp_result.start()
-            watch.date_sold = date_sold[digit_position:999]
+            digit_position = regExp_result.start() # Get the index of the first digit occurence 
+            watch.date_sold = date_sold[digit_position:999] # Do some string magic that removes part of string that isnt in given range. 
         else:
             print("WARNING: Irregular date_sold on lot_id: " + str(lot_id) + " and " + "auction_id: " + str(auction_id))
             watch.date_sold = date_sold
@@ -244,6 +245,7 @@ for auction_id in range(len(auctions_list)):
         watches_list.append(watch)
         print("Successfully scraped watch on lot_id: " + str(lot_id) + " and " + "auction_id: " + str(auction_id))
 
+    # Creating a excel heet   
     workbook = Workbook()
     sheet = workbook.active
 
