@@ -1,17 +1,4 @@
-import datetime
-
-
-class Auction:
-    """
-    Auction of watches
-    """
-
-    def __init__(self, first_url, date='', currency='USD', number_of_lots=0):
-        self.first_url = first_url
-        self.date = date
-        self.currency = currency
-        self.number_of_lots = number_of_lots
-
+from auction import Auction
 
 auctions = [
     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-weekly-f-p-journe-piaget-the-atmos-clock/f-p-journe-chronometre-a-resonance-an-early', '29-04-2020', 'HKD'),
@@ -25,6 +12,18 @@ auctions = [
     Auction('https://www.sothebys.com/en/buy/auction/2019/watches-online-7/rolex-a-crystal-paperweight-made-for-baselworld', '26-11-2019', 'HKD'),
     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-db1902/lot.1.html',
             '24-11-2019', 'USD'),
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-db1902/lot.10.html#jumpToLotPopover',
+            '24-11-2019', 'USD'),  # test
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2007/important-watches-hk0247/lot.1201.html',
+            '24-11-2019', 'USD'),  # test
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2007/important-watches-ge0702/lot.34.html',
+            '24-11-2019', 'USD'),  # test
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2009/important-watches-ge0901/lot.1.html',
+            '10-05-2009', 'CHF'),  # TEST
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2009/important-watches-ge0901/lot.158.html',
+            '10-05-2009', 'CHF'),  # TEST
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2018/watches-online-l18056/lot.1.html',
+            '10-05-2009', 'CHF'),  # TEST
     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/important-watches-ge1904/lot.201.html', '12-11-2019', 'CHF'),
     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/important-watches-hk0892/lot.2001.html', '08-10-2019', 'HKD'),
     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-l19071/lot.1.html',
