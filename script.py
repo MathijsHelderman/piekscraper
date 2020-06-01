@@ -9,6 +9,7 @@ from sothebys_auctions import auctions as _AUCTIONS
 from website import Website
 from sothebys_old import Sothebys_old
 from sothebys_new import Sothebys_new
+from openpyxl import Workbook
 
 # Piekscraper project
 # @created_by: Mathijs Helderman & Juan Albergen
@@ -34,20 +35,7 @@ from sothebys_new import Sothebys_new
 # CONSTANTS
 #
 _DOMAIN_URL = 'https://www.sothebys.com'
-_MAX_NUMBER_OF_REQUESTS_PER_ACUCTION = 1
-
-#
-# URL's of specific watches (for testing)
-#
-_TEST_URL_FIRST = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/f-p-journe-centigraphe-souverain-ref-cts-aluminium'
-_TEST_URL2 = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/patek-philippe-nautilus-ref-5711-stainless-steel'
-_TEST_URL_LAST = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/de-beers-gold-plated-hourglass-with-floating'
-_TEST_URL_COLLECTOR = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/rolex-double-red-sea-dweller-ref-1665-stainless'
-_TEST_URL3 = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/rolex-panama-canal-submariner-ref-16613-limited'
-_TEST_URL4 = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/a-lange-soehne-lange-1-mondphase-ref-109-032-pink'
-_TEST_URL5 = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/longines-double-hand-ref-5699-stainless-steel'
-_TEST_URL6 = 'https://www.sothebys.com/en/buy/auction/2020/watches-online-2/longines-yellow-gold-wristwatch-circa-1940'
-_TEST_URL_OLD_DESIGN = 'https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-db1902/lot.1.html'
+_MAX_NUMBER_OF_REQUESTS_PER_ACUCTION = 5
 
 
 def get_correct_website(url: str) -> Website:
@@ -57,7 +45,7 @@ def get_correct_website(url: str) -> Website:
         return Sothebys_new(_DOMAIN_URL)
 
 
-def printProgressBar(iteration, total, prefix='Auctions:', suffix='complete', decimals=1, length=50, fill='█', printEnd=""):
+def printProgressBar(iteration, total, prefix='Auctions:', suffix='complete', printEnd="", decimals=1, length=50, fill='█'):
     """
     Call in a loop to create terminal progress bar
     @author: https://stackoverflow.com/a/34325723
@@ -153,7 +141,7 @@ def get_watch_info(w: Website, auction: Auction, url: str, auction_name: str):
                 url
             )
 
-            print(watch.toJSON())
+            # print(watch.toJSON())
 
             return watch, w.get_next_url(nav_con)
         else:
@@ -216,10 +204,10 @@ def get_watches_from_sothebys():
     for auction in _AUCTIONS:
         auction_watch_list, number_of_watches = get_watches_from_auction(
             auction)
-        total_list.append(auction_watch_list)
+        total_list += auction_watch_list
         total_number_of_watches += number_of_watches
-        printProgressBar(index + 1, l)
         index += 1
+        printProgressBar(index, l)
 
     print("\n--- Total number of watches: %s ---" % total_number_of_watches)
     print("--- Total number of auctions: %d ---" % l)
@@ -229,7 +217,80 @@ def get_watches_from_sothebys():
 
 
 def format_watch_list_to_xlsx(watch_list):
-    pass
+    start_time = time.time()
+    try:
+        # Creating a excel heet
+        workbook = Workbook()
+        sheet = workbook.active
+        print('\nStarting the process of creating the Excel file...\n')
+
+        # Append column names first
+        sheet.append([
+            "manufacturer",
+            "year",
+            "reference_number",
+            "model_name",
+            "sold_for",
+            "estimate_minimum",
+            "estimate_maximum",
+            "date_sold",
+            "material",
+            "case_number",
+            "description_condition",
+            "diameter",
+            "movement_number",
+            "calibre",
+            "bracelet_strap",
+            "accessoires",
+            "signed",
+            "auction_name",
+            "currency",
+            "lot_number",
+            "url"])
+
+        index = 0
+        l = len(watch_list)
+        printProgressBar(index, l, '\rWatches converted:', '\r', '\r')
+
+        for w in watch_list:
+            sheet_data = [
+                w.manufacturer,
+                w.year,
+                w.reference_number,
+                w.model_name,
+                w.sold_for,
+                w.estimate_minimum,
+                w.estimate_maximum,
+                w.date_sold,
+                w.material,
+                w.case_number,
+                w.description_condition,
+                w.diameter,
+                w.movement_number,
+                w.calibre,
+                w.bracelet_strap,
+                w.accessoires,
+                w.signed,
+                w.auction_name,
+                w.currency,
+                w.lot_number,
+                w.url
+            ]
+            sheet.append(sheet_data)
+
+            index += 1
+            printProgressBar(index, l, '\rWatches converted:', '\r', '\r')
+
+        print('\n--- Done adding watches to Excel file ---')
+        path = '/Users/matti/Desktop/sothebys_watch_list.xlsx'
+        print('--- Saving Excel file to:"%s" ---' % path)
+        workbook.save(filename=path)
+        print('--- Excel file saved ---')
+        print("--- Excel file creation time: %s seconds ---" %
+              (time.time() - start_time))
+    except Exception as err:
+        print('Error while creating Excel file:', err)
+        exit()
 
 
 # MAIN
@@ -251,5 +312,7 @@ print("=============================\n")
 # get_watch_info(_TEST_URL5)
 # get_watch_info(_TEST_URL6)
 
-sothebys_watch_list = get_watches_from_sothebys()
+sothebys_watch_list, total_number_of_watches = get_watches_from_sothebys()
+# print('Watchlist:', sothebys_watch_list)
+# print('First watch:', sothebys_watch_list[0].toJSON())
 format_watch_list_to_xlsx(sothebys_watch_list)
