@@ -1,6 +1,8 @@
 import json
+from dataclasses import dataclass
 
 
+@dataclass
 class Watch:
     "A watch sold at the auction"
 
