@@ -35,7 +35,7 @@ from openpyxl import Workbook
 # CONSTANTS
 #
 _DOMAIN_URL = 'https://www.sothebys.com'
-_MAX_NUMBER_OF_REQUESTS_PER_ACUCTION = 5
+_MAX_NUMBER_OF_REQUESTS_PER_ACUCTION = 10000
 
 
 def get_correct_website(url: str) -> Website:
