@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from watch import Watch
 from auction import Auction
 from sothebys_auctions import auctions as _AUCTIONS
+from sothebys_auctions import test_auctions as _TEST_AUCTIONS
 from website import Website
 from sothebys_old import Sothebys_old
 from sothebys_new import Sothebys_new
@@ -36,7 +37,12 @@ from openpyxl import Workbook
 # CONSTANTS
 #
 _DOMAIN_URL = 'https://www.sothebys.com'
-_MAX_NUMBER_OF_REQUESTS_PER_ACUCTION = 10000
+_EXCEL_NAME = 'sothebys_watch_list3'
+
+# If _DEV is true, the program runs in developer mode:
+_DEV = True
+_MAX_NUMBER_OF_REQUESTS_PER_ACUCTION = 5 if _DEV else 10000
+_SOTHEBYS_AUCTIONS = _TEST_AUCTIONS if _DEV else _AUCTIONS
 
 
 def get_correct_website(url: str) -> Website:
@@ -206,6 +212,10 @@ def get_watches_from_auction(auction: Auction):
             print("--- Number of watches in auction: %d ---" %
                   counter, end="\r")
 
+        if counter == _MAX_NUMBER_OF_REQUESTS_PER_ACUCTION and not _DEV:
+            print('ERROR! Too many lots in one auction, infinite loop...')
+            exit()
+            raise SystemExit
 
     print("--- Number of watches in auction: %d ---" % counter)
     print("--- Auction scraping time: %s seconds ---\n" %
@@ -219,10 +229,10 @@ def get_watches_from_sothebys():
     total_start_time = time.time()
 
     index = 0
-    l = len(_AUCTIONS)
+    l = len(_SOTHEBYS_AUCTIONS)
     printProgressBar(index, l)
 
-    for auction in _AUCTIONS:
+    for auction in _SOTHEBYS_AUCTIONS:
         auction_watch_list, number_of_watches = get_watches_from_auction(
             auction)
         total_list += auction_watch_list
@@ -239,6 +249,8 @@ def get_watches_from_sothebys():
 
 def format_watch_list_to_xlsx(watch_list):
     start_time = time.time()
+    if len(watch_list) == 0:
+        raise Exception('No watches in watch_list.')
     try:
         # Creating a excel heet
         workbook = Workbook()
@@ -303,7 +315,7 @@ def format_watch_list_to_xlsx(watch_list):
             printProgressBar(index, l, '\rWatches converted:', '\r', '\r')
 
         print('\n--- Done adding watches to Excel file ---')
-        path = '/Users/matti/Desktop/sothebys_watch_list.xlsx'
+        path = '/Users/matti/Desktop/' + _EXCEL_NAME + '.xlsx'
         print('--- Saving Excel file to:"%s" ---' % path)
         workbook.save(filename=path)
         print('--- Excel file saved ---')

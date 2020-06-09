@@ -155,35 +155,36 @@ auctions = [
 #
 # URL's of specific watches (for testing)
 #
-# auctions = [
-#     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-db1902/lot.1.html',
-#             '01-01-1000', 'EUR'),  # test
-#     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-db1902/lot.10.html#jumpToLotPopover',
-#             '01-01-1000', 'EUR'),  # test
-#     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2007/important-watches-hk0247/lot.1201.html',
-#             '01-01-1000', 'EUR'),  # test
-#     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2007/important-watches-ge0702/lot.34.html',
-#             '01-01-10009', 'EUR'),  # test
-#     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2009/important-watches-ge0901/lot.1.html',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2009/important-watches-ge0901/lot.158.html',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2018/watches-online-l18056/lot.1.html',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/longines-yellow-gold-wristwatch-circa-1940',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/longines-double-hand-ref-5699-stainless-steel',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/a-lange-soehne-lange-1-mondphase-ref-109-032-pink',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/rolex-panama-canal-submariner-ref-16613-limited',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/rolex-double-red-sea-dweller-ref-1665-stainless',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/de-beers-gold-plated-hourglass-with-floating',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/patek-philippe-nautilus-ref-5711-stainless-steel',
-#             '01-01-1000', 'EUR'),  # TEST
-#     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/f-p-journe-centigraphe-souverain-ref-cts-aluminium',
-#             '01-01-1000', 'EUR'),  # TEST
-# ]
+test_auctions = [
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-db1902/lot.1.html',
+            '01-01-1000', 'EUR'),  # test
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2019/watches-db1902/lot.10.html#jumpToLotPopover',
+            '01-01-1000', 'EUR'),  # test
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2007/important-watches-hk0247/lot.1201.html',
+            '01-01-1000', 'EUR'),  # test
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2007/important-watches-ge0702/lot.34.html',
+            '01-01-10009', 'EUR'),  # test
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2009/important-watches-ge0901/lot.1.html',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2009/important-watches-ge0901/lot.158.html',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2018/watches-online-l18056/lot.1.html',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/longines-yellow-gold-wristwatch-circa-1940',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/longines-double-hand-ref-5699-stainless-steel',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/a-lange-soehne-lange-1-mondphase-ref-109-032-pink',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/rolex-panama-canal-submariner-ref-16613-limited',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/rolex-double-red-sea-dweller-ref-1665-stainless',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/de-beers-gold-plated-hourglass-with-floating',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/patek-philippe-nautilus-ref-5711-stainless-steel',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/f-p-journe-centigraphe-souverain-ref-cts-aluminium',
+            '01-01-1000', 'EUR'),  # TEST
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2013/important-watches-hk0476/lot.2457.html', '08-10-2013', 'HKD'),
+]
