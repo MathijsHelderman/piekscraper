@@ -39,7 +39,7 @@ class Website(ABC):
         # return the first 4 digit number
         return number_array[0] if len(number_array) > 0 else ''
 
-    def is_watch(self, watch: Watch):
+    def is_watch(self, watch):
         # counter = 0
         # for key, value in vars(watch).items():
         #     # print(key[:4], ":", value)
@@ -49,7 +49,7 @@ class Website(ABC):
         # if counter >= 5:
         #     return False
         # else:
-        return True
+        return True if isinstance(watch, Watch) else False
 
     # Generic
     @abstractmethod
