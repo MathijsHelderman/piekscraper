@@ -348,4 +348,5 @@ print("=============================\n")
 sothebys_watch_list, total_number_of_watches = get_watches_from_sothebys()
 # print('Watchlist:', sothebys_watch_list)
 # print('First watch:', sothebys_watch_list[0].toJSON())
-format_watch_list_to_xlsx(sothebys_watch_list)
+if _DEV:
+    format_watch_list_to_xlsx(sothebys_watch_list)
