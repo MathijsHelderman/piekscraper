@@ -1,4 +1,5 @@
 import time
+from time import sleep
 import requests
 import json
 from bs4 import BeautifulSoup
@@ -149,14 +150,15 @@ def get_watch_info(w: Website, auction: Auction, url: str, auction_name: str):
                   response.status_code)
             exit()
     except requests.exceptions.RequestException as err:
-        print("Err:", err)
-        exit()
+        print('\n\nError:', err)
+        return -2, url
 
 
 def get_watches_from_auction(auction: Auction):
     start_time = time.time()
 
     first_url_done = False
+    retried_connection = False
     next_url = auction.first_url
     w = get_correct_website(next_url)
     auction_name = w.get_auction_name(next_url)
@@ -166,6 +168,12 @@ def get_watches_from_auction(auction: Auction):
     watch_list = []
 
     while next_url != '' and next_url is not None and counter < _MAX_NUMBER_OF_REQUESTS_PER_ACUCTION:
+        # To prevent the next_url from being the same as the current url
+        # it needs to be checked after getting the next_url. An example of this
+        # error is found at: https://www.sothebys.com/en/auctions/ecatalogue/2013/important-watches-hk0476/lot.2458.html,
+        # where the next url button is linked to the same lot, which causes an endless loop...
+        last_url = next_url
+
         # print('\n\nnexturl=', next_url)
         w = get_correct_website(next_url)
         watch, next_url = get_watch_info(w, auction, next_url, auction_name)
@@ -175,16 +183,29 @@ def get_watches_from_auction(auction: Auction):
             first_url_done = True
         elif next_url == auction.first_url:
             next_url = ''
+        elif next_url == last_url:
+            index = next_url.find('/lot.')
+            new_lot_number = int(watch.lot_number) + 1
+            new_end_url_string = '/lot.' + str(new_lot_number) + '.html'
+            new_url = next_url[:index] + new_end_url_string
+            next_url = new_url
 
         # print("\rLot: %d" % counter, end="\r")
         if watch == -1:
             # Error with page
             break
+        elif watch == -2:
+            if retried_connection:
+                break
+            else:
+                retried_connection = True
+                sleep(300)
         elif w.is_watch(watch):
             watch_list.append(watch)
             counter += 1
             print("--- Number of watches in auction: %d ---" %
                   counter, end="\r")
+
 
     print("--- Number of watches in auction: %d ---" % counter)
     print("--- Auction scraping time: %s seconds ---\n" %
