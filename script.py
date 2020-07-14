@@ -4,14 +4,20 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from abc import ABC, abstractmethod
-from watch import Watch
-from auction import Auction
-from sothebys_auctions import auctions as _AUCTIONS
-from sothebys_auctions import test_auctions as _TEST_AUCTIONS
+from openpyxl import Workbook
+
 from website import Website
+from auction import Auction
+from watch import Watch
+
+from sothebys_auctions import auctions as _AUCTIONS_SOTH
+from sothebys_auctions import test_auctions as _TEST_AUCTIONS_SOTH
 from sothebys_old import Sothebys_old
 from sothebys_new import Sothebys_new
-from openpyxl import Workbook
+
+from antiquorum_auctions import auctions as _AUCTIONS_ANTI
+from antiquorum_auctions import test_auctions as _TEST_AUCTIONS_ANTI
+from antiquorum_old import Antiquorum_old
 
 # Piekscraper project
 # @created_by: Mathijs Helderman & Juan Albergen
@@ -33,23 +39,26 @@ from openpyxl import Workbook
 # Weird and annoying as it is, because of the amount of data that's in the old format, it will need a scraper as well.
 # The url reflects which design is used on the lot. Ones with .html at the end of the url are of the old format.
 
+
+# SETUP
+_SCRAPING_WEBSITE = 'Antiquorum'
+_EXCEL_NAME = 'antiquorum_list_1'
+_DEV = True
+
 #
 # CONSTANTS
 #
-_DOMAIN_URL = 'https://www.sothebys.com'
-_EXCEL_NAME = 'sothebys_watch_list3'
+if _SCRAPING_WEBSITE == 'Sothebys':
+    _DOMAIN_URL = 'https://www.sothebys.com'
+elif _SCRAPING_WEBSITE == 'Antiquorum':
+    _DOMAIN_URL = 'https://catalog.antiquorum.swiss'
 
 # If _DEV is true, the program runs in developer mode:
-_DEV = True
 _MAX_NUMBER_OF_REQUESTS_PER_ACUCTION = 5 if _DEV else 10000
-_SOTHEBYS_AUCTIONS = _TEST_AUCTIONS if _DEV else _AUCTIONS
-
-
-def get_correct_website(url: str) -> Website:
-    if url.find('.html') >= 0:
-        return Sothebys_old(_DOMAIN_URL)
-    else:
-        return Sothebys_new(_DOMAIN_URL)
+if _SCRAPING_WEBSITE == 'Sothebys':
+    _AUCTIONS = _TEST_AUCTIONS_SOTH if _DEV else _AUCTIONS_SOTH
+elif _SCRAPING_WEBSITE == 'Antiquorum':
+    _AUCTIONS = _TEST_AUCTIONS_ANTI if _DEV else _AUCTIONS_ANTI
 
 
 def printProgressBar(iteration, total, prefix='Auctions:', suffix='complete', printEnd="", decimals=1, length=50, fill='█'):
@@ -74,6 +83,16 @@ def printProgressBar(iteration, total, prefix='Auctions:', suffix='complete', pr
     # Print New Line on Complete
     if iteration == total:
         print()
+
+
+def get_correct_website(url: str) -> Website:
+    if url.find('sothebys') >= 0:
+        if url.find('.html') >= 0:
+            return Sothebys_old(_DOMAIN_URL)
+        else:
+            return Sothebys_new(_DOMAIN_URL)
+    else:
+        return Antiquorum_old(_DOMAIN_URL)
 
 
 def get_watch_info(w: Website, auction: Auction, url: str, auction_name: str):
@@ -222,17 +241,18 @@ def get_watches_from_auction(auction: Auction):
           (time.time() - start_time))
     return watch_list, counter
 
-
-def get_watches_from_sothebys():
+def get_watches_from_website():
     total_list = []
     total_number_of_watches = 0
     total_start_time = time.time()
 
     index = 0
-    l = len(_SOTHEBYS_AUCTIONS)
+    l = len(_AUCTIONS)
     printProgressBar(index, l)
 
-    for auction in _SOTHEBYS_AUCTIONS:
+    for auction in _AUCTIONS:
+        if _SCRAPING_WEBSITE == 'Antiquorum':
+            auction = createAuctionFromURL(auction) ## TODO: Make this nicer
         auction_watch_list, number_of_watches = get_watches_from_auction(
             auction)
         total_list += auction_watch_list
@@ -245,6 +265,14 @@ def get_watches_from_sothebys():
     print("--- Total Sothebys scraping time: %s seconds ---" %
           (time.time() - total_start_time))
     return total_list, total_number_of_watches
+
+
+def createAuctionFromURL(auction_url: str):
+    """
+    Different kind of auction definitions on the different sites.
+    TODO: Needs to be better accomodated instead of this ugly method.
+    """
+
 
 
 def format_watch_list_to_xlsx(watch_list):
@@ -329,24 +357,11 @@ def format_watch_list_to_xlsx(watch_list):
 # MAIN
 # TERMINAL PRINT START
 print("\n=============================")
-print("=== Piekscraper: Sothebys ===")
+print("=== Piekscraper: %s ===" % _SCRAPING_WEBSITE)
 print("=============================\n")
 
-# get_watch_info(_TEST_URL_FIRST)
-# print("")
-# get_watch_info(_TEST_URL2)
-# print("")
-# get_watch_info(_TEST_URL_LAST)
-# print("")
-# get_watch_info(_TEST_URL_COLLECTOR)
-# print("")
-# get_watch_info(_TEST_URL3)
-# get_watch_info(_TEST_URL4)
-# get_watch_info(_TEST_URL5)
-# get_watch_info(_TEST_URL6)
-
-sothebys_watch_list, total_number_of_watches = get_watches_from_sothebys()
-# print('Watchlist:', sothebys_watch_list)
-# print('First watch:', sothebys_watch_list[0].toJSON())
-if _DEV:
-    format_watch_list_to_xlsx(sothebys_watch_list)
+watch_list, total_number_of_watches = get_watches_from_website()
+if not _DEV:
+    format_watch_list_to_xlsx(watch_list)
+# print('Watchlist:', watch_list)
+# print('First watch:', watch_list[0].toJSON())
