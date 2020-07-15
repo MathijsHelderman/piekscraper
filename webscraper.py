@@ -145,7 +145,7 @@ def print_auction_urls(auction_list):
 
 # Helper methods
 
-def remove_chars(self, string, loc):
+def remove_chars(string, loc):
     i = 0
     if loc == 'start':
         for char in string:
@@ -162,7 +162,7 @@ def remove_chars(self, string, loc):
             i += 1
     return string
 
-def get_first_number(self, string):
+def get_first_number(string):
     # all numbers in the string of length 4, separated either by space ' ' or comma ','
     number_array = [str(s) for s in string.split()
                     if len(s) == 4 and s.isdigit()]
@@ -175,10 +175,12 @@ def get_first_number(self, string):
     return number_array[0] if len(number_array) > 0 else ''
 
 # TODO: return the description text
-def get_desc():
-    return ''
+def get_desc(info_element):
+    desc = info_element.find_all("strong")[0].find("p").get_text()
+    print("Desc: %s " % desc)
+    return desc
 
-def get_desc_index_of_attr(self, desc, attr):
+def get_desc_index_of_attr(desc, attr):
     i = 0
     for part in desc:
         if isinstance(part, str):
@@ -189,7 +191,7 @@ def get_desc_index_of_attr(self, desc, attr):
         i += 1
     return -1
 
-def get_desc_attr(self, desc, attr):
+def get_desc_attr(desc, attr):
     a = ''
     desc_text = desc.find(
         'div', attrs={'class': 'lotdetail-description-text'})
@@ -197,7 +199,7 @@ def get_desc_attr(self, desc, attr):
     # determine how the description text is ordered
     desc_array_strong = desc_text.find_all('strong')
     if len(desc_array_strong) > 2:
-        index = self.get_desc_index_of_attr(desc_array_strong, attr)
+        index = get_desc_index_of_attr(desc_array_strong, attr)
         if index != -1:
             a = desc_array_strong[index]
             a = a.next_sibling
@@ -208,14 +210,14 @@ def get_desc_attr(self, desc, attr):
         # Check if the info is ordered by '•'
         if desc_text.find('•') >= 0:
             desc_arr_points = desc_text.split('•')
-            index = self.get_desc_index_of_attr(
+            index = get_desc_index_of_attr(
                 desc_arr_points, attr)
             if index != -1:
                 a = desc_arr_points[index]
         # Check if a is still empty and if the info is ordered by semicolons ';'
         if a == '' and desc_text.find(';') >= 0:
             desc_arr_semicolon = desc_text.split(';')
-            index = self.get_desc_index_of_attr(
+            index = get_desc_index_of_attr(
                 desc_arr_semicolon, attr)
             if index != -1:
                 a = desc_arr_semicolon[index]
@@ -226,7 +228,7 @@ def get_desc_attr(self, desc, attr):
             # guess if it's not just a couple of commas used in the text instead of
             # seperators based on the number of occurrences
             if len(desc_arr_commas) > 3:
-                index = self.get_desc_index_of_attr(
+                index = get_desc_index_of_attr(
                     desc_arr_commas, attr)
                 if index != -1:
                     if attr == 'Signed':
@@ -242,21 +244,21 @@ def get_desc_attr(self, desc, attr):
 
     a = a.replace('\xa0', ' ')
     a = a.lstrip()
-    # print("\n%s: %s" % (attr, a), end='\n')
+    print("\n%s: %s" % (attr, a), end='\n')
     return a
 
 
 # Getters for watch specs
-def get_manufacturer(self, desc):
+def get_manufacturer(desc):
     try:
         mf_array = desc.split(',')
         mf = mf_array[0]
-        # print('mf:', mf)
+        print('mf:', mf)
         return mf
     except Exception:
         return ''
 
-def get_year(self, desc):
+def get_year(desc):
     try:
         text = desc
 
@@ -268,24 +270,24 @@ def get_year(self, desc):
                 circa = text.find('circa')
             if circa >= 0:
                 year = text[circa:]
-                year = self.remove_chars(year, 'start')
-                year = self.get_first_number(year)
+                year = remove_chars(year, 'start')
+                year = get_first_number(year)
             else:
                 made_in = text.find('MADE IN')
                 if made_in >= 0:
                     year = text[made_in:]
-                    year = self.remove_chars(year, 'start')
-                    year = self.get_first_number(year)
+                    year = remove_chars(year, 'start')
+                    year = get_first_number(year)
                 else:
                     # Else search for the first 4 digit number and hope it's the correct year
-                    year = self.get_first_number(text)
+                    year = get_first_number(text)
 
             year = year.replace('\xa0', ' ')
             return year
     except Exception:
         return ''
 
-def get_reference_number(self, desc):
+def get_reference_number(desc):
     try:
         text = desc
 
@@ -309,12 +311,12 @@ def get_reference_number(self, desc):
                 return ''
             else:
                 ref = text[(ref_index + 1)]
-                # print('ref:', ref)
+                print('ref:', ref)
                 return ref
     except Exception:
         return ''
 
-def get_model_name(self, desc):
+def get_model_name(desc):
     try:
         mn_array = desc.split(',')
         mn = mn_array[0]
@@ -325,72 +327,72 @@ def get_model_name(self, desc):
         return ''
 
 
-def get_diameter(self, desc):
+def get_diameter(desc):
     try:
-        d = self.get_desc_attr(desc, 'Dimensions')
+        d = get_desc_attr(desc, 'Dimensions')
         if d == '':
-            d = self.get_desc_attr(desc, 'Size')
+            d = get_desc_attr(desc, 'Size')
         if d == '':
-            d = self.get_desc_attr(desc, 'diameter')
+            d = get_desc_attr(desc, 'diameter')
             d = d[d.find('diameter'):]
         if d == '':
-            d = self.get_desc_attr(desc, 'length')
+            d = get_desc_attr(desc, 'length')
             d = d[d.find('length'):]
         if d == '':
-            d = self.get_desc_attr(desc, 'mm')
+            d = get_desc_attr(desc, 'mm')
             d = d[(d.find('mm') - 5):]
 
-        d = self.remove_chars(d, 'start')
-        # print('diameter:"%s"' % d)
+        d = remove_chars(d, 'start')
+        print('diameter:"%s"' % d)
         return d
     except Exception:
         return ''
 
 
-def get_material(self, desc):
+def get_material( desc):
     try:
-        return self.get_desc_attr(desc, 'Case')
+        return get_desc_attr(desc, 'Case')
     except Exception:
         return ''
 
-def get_case_number(self, desc):
+def get_case_number( desc):
     try:
-        return self.get_desc_attr(desc, 'Case number')
+        return get_desc_attr(desc, 'Case number')
     except Exception:
         return ''
 
-def get_movement_number(self, desc):
+def get_movement_number( desc):
     try:
-        return self.get_desc_attr(desc, 'Movement number')
+        return get_desc_attr(desc, 'Movement number')
     except Exception:
         return ''
 
-def get_calibre(self, desc):
+def get_calibre( desc):
     try:
-        cal = self.get_desc_attr(desc, 'Calibre')
+        cal = get_desc_attr(desc, 'Calibre')
         if cal == '':
-            cal = self.get_desc_attr(desc, 'cal.')
+            cal = get_desc_attr(desc, 'cal.')
         if cal == '':
-            cal = self.get_desc_attr(desc, 'cal')
+            cal = get_desc_attr(desc, 'cal')
         return cal
     except Exception:
         return ''
 
-def get_bracelet_strap(self, desc):
+def get_bracelet_strap( desc):
     try:
-        return self.get_desc_attr(desc, 'Closure')
+        return get_desc_attr(desc, 'Closure')
     except Exception:
         return ''
 
-def get_accessoires(self, desc):
+def get_accessoires( desc):
     try:
-        return self.get_desc_attr(desc, 'Accessories')
+        return get_desc_attr(desc, 'Accessories')
     except Exception:
         return ''
 
-def get_signed(self, desc):
+def get_signed( desc):
     try:
-        return self.get_desc_attr(desc, 'Signed')
+        return get_desc_attr(desc, 'Signed')
     except Exception:
         return ''
 
@@ -409,7 +411,7 @@ def scrape_watchinfo(lot):
 
     watch = Watch()
 
-    if len(p_elements) > 0:
+    if len(p_elements) < 0:
         for p in p_elements:
             label = p.find("strong")
 
@@ -454,19 +456,19 @@ def scrape_watchinfo(lot):
                     watch.accessoires = p.get_text().split("Accessories", 1)[1].lstrip()
     else:
         # TODO: define/get the desc text
-        desc = get_desc()
-        watch.manufacturer = self.get_manufacturer(desc)
-        watch.model_name = self.get_model_name(desc)
-        watch.movement_number = self.get_movement_number(desc)
-        watch.material = self.get_material(desc)
-        watch.reference_number = self.get_reference_number(desc)
-        watch.year = self.get_year(desc)
-        watch.case_number = self.get_case_number(desc)
-        watch.bracelet_strap = self.get_bracelet_strap(desc)
-        watch.calibre = self.get_calibre(desc)
-        watch.diameter = self.get_diameter(desc)
-        watch.signed = self.get_signed(desc)
-        watch.accessoires = self.get_accessoires(desc)
+        desc = get_desc(info_element)
+        watch.manufacturer = get_manufacturer(desc)
+        watch.model_name = get_model_name(desc)
+        watch.movement_number = get_movement_number(desc)
+        watch.material = get_material(desc)
+        watch.reference_number = get_reference_number(desc)
+        watch.year = get_year(desc)
+        watch.case_number = get_case_number(desc)
+        watch.bracelet_strap = get_bracelet_strap(desc)
+        watch.calibre = get_calibre(desc)
+        watch.diameter = get_diameter(desc)
+        watch.signed = get_signed(desc)
+        watch.accessoires = get_accessoires(desc)
 
 
     try:
