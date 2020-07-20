@@ -99,8 +99,11 @@ def main():
     #     create_excelsheet(watches_list, i)
     # lot = Lot(1, "https://catalog.antiquorum.swiss/en/lots/patek-philippe-ref-ref-5060-lot-109-204?page=0")
     # lot = Lot(1, "https://catalog.antiquorum.swiss/en/lots/panerai-lot-303-3?page=0")
+    # lot = Lot(1, "https://catalog.antiquorum.swiss/en/lots/patek-philippe-ref-ref-5060-lot-109-204?page=0")
+    # lot = Lot(1, "https://catalog.antiquorum.swiss/en/lots/a-lange-sohne-lot-291-251?page=0")
+    # movement number
     lot = Lot(
-        1, "https://catalog.antiquorum.swiss/en/lots/patek-philippe-ref-ref-5060-lot-109-204?page=0")
+        1, "https://catalog.antiquorum.swiss/en/lots/omega-ref-st-105-003-lot-302-296?page=0")
 
     watch = scrape_watchinfo(lot)
     print(watch)
@@ -180,7 +183,7 @@ def get_first_valid_year(string):
     s_array = string.split(' ')
     for s in s_array:
         s = remove_chars(s, 'both')
-        if (len(s) == 4 and s.isdigit()) and (int(s) > 1000 and int(s) <= 2020):
+        if (len(s) == 4 and s.isdigit()) and (int(s) > 1700 and int(s) <= 2020):
             number_array.append(s)
 
     # print('numbarr:', number_array)
@@ -201,6 +204,7 @@ def get_desc2(info_element):
     try:
         desc2 = info_element.find_all(
             "strong")[0].find_next_sibling("p").get_text()
+        # print("Desc2: %s " % desc2)
         return desc2
     except Exception:
         return ''
@@ -240,6 +244,19 @@ def get_desc_attr(desc, attr):
     # print("\n%s: %s" % (attr, a), end='\n')
     return a
 
+
+def clean_string(string):
+    """
+    Replace all ascii characters with a "normal" space.
+    Remove leading and trailing unwanted characters.
+    """
+    unwanted_lead_or_trail_chars = ' ,.;'
+
+    string = string.replace('\xa0', ' ')
+    string = string.lstrip(unwanted_lead_or_trail_chars)
+    string = string.rstrip(unwanted_lead_or_trail_chars)
+    return string
+
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # Getters for watch specs
@@ -249,8 +266,7 @@ def get_manufacturer(desc):
     try:
         mf_array = desc.split(',')
         mf = mf_array[0]
-        mf = mf.replace('\xa0', ' ')
-        mf = mf.lstrip()
+        mf = clean_string(mf)
         # print('mf:', mf)
         return mf
     except Exception:
@@ -261,8 +277,7 @@ def get_model_name(desc):
     try:
         mn_array = desc.split(',')
         mn = mn_array[0]
-        mn = mn.replace('\xa0', ' ')
-        mn = mn.lstrip()
+        mn = clean_string(mn)
         # print('Model name: ', mn)
         return mn
     except Exception:
@@ -271,27 +286,23 @@ def get_model_name(desc):
 
 def get_movement_number(desc):
     try:
-        desc = desc.lower()
         mvt = ''
         mvt_index = -1
+        mvt_synonyms = ['movement no', 'mvt.' 'movement number', 'mvt']
 
-        mvt = get_desc_attr(desc, 'mvt.')
-        if mvt != '':
-            mvt_index = mvt.find('mvt.')
-        else:
-            mvt = get_desc_attr(desc, 'movement number')
-            if mvt != '':
-                mvt_index = mvt.find('movement number')
-            else:
-                mvt = get_desc_attr(desc, 'mvt')
-                if mvt != '':
-                    mvt_index = mvt.find('mvt')
+        for synonym in mvt_synonyms:
+            mvt_index = desc.find(synonym)
+            if mvt_index >= 0:
+                mvt_index = mvt_index + len(synonym)
+                break
 
-        if mvt_index != -1:
-            mvt = mvt[mvt_index:]  # remove everything in front
+        if mvt_index >= 0:
+            mvt = desc[mvt_index:]
             mvt = mvt.split()
             mvt = mvt[1]
 
+        mvt = clean_string(mvt)
+        # print("MVT:", mvt)
         return mvt
     except Exception:
         return ''
@@ -299,52 +310,40 @@ def get_movement_number(desc):
 
 def get_material(desc):
     try:
-        return get_desc_attr(desc, 'case')
+        return desc
     except Exception:
         return ''
 
 
 def get_reference_number(desc):
     try:
-        desc = desc.lower()
-        desc = desc.split()
+        ref = ''
         ref_index = -1
+        ref_synonyms = ['reference', 'ref.', 'ref', 'no.', 'no']
 
-        # TODO : should check every word
-        # in whole desc first, before checking every
-        # word against every word in the array.
-        # Now a word with lower preferability can be
-        # found first.
-        for t in desc:
-            if t.find('reference') >= 0:
-                ref_index = desc.index(t)
-                break
-            elif t.find('ref.') >= 0:
-                ref_index = desc.index(t)
-                break
-            elif t.find('ref') >= 0:
-                ref_index = desc.index(t)
-                break
-            elif t.find('NO.') >= 0:
-                ref_index = desc.index(t)
-                break
-            elif t.find('NO ') >= 0:
-                ref_index = desc.index(t)
+        for synonym in ref_synonyms:
+            ref = get_reference_number_detail(desc, synonym)
+            if ref != '':
+                ref_index = ref.find(synonym)
                 break
 
-        if ref_index == -1:
-            return ''
-        else:
-            ref = desc[(ref_index + 1)]
-            # print('ref:', ref)
-            return ref
+        if ref_index != -1:
+            ref = ref[ref_index:]
+            ref = ref.split()
+            ref = ref[1]
+
+        return ref
     except Exception:
         return ''
 
 
+def get_reference_number_detail(desc, s):
+    return get_desc_attr(desc, s)
+
+
 def get_year(desc):
     try:
-        desc = desc.lower()
+        year = ''
 
         year_index = desc.find('circa')
         if year_index == -1:
@@ -354,13 +353,16 @@ def get_year(desc):
         if year_index == -1:
             year_index = desc.find('year ')
 
-        # y = desc[year_index:]
+        if year_index >= 0:
+            year = desc[year_index:]
+            year = remove_chars(year, 'start')
+            year = get_first_valid_year(year)
+        else:
+            year = get_first_valid_year(desc)
 
-        year = get_first_valid_year(desc)
         year = year.replace('\xa0', ' ')
         return year
-    except Exception as e:
-        print(e)
+    except Exception:
         return ''
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! up mh - down
@@ -525,18 +527,25 @@ def scrape_watchinfo(lot):
                     watch.accessoires = p.get_text().split(
                         "Accessories", 1)[1].lstrip()
     else:
-        desc = get_desc(info_element)  # DONE
+        desc = get_desc(info_element)
+        desc_lower = desc.lower()
         desc2 = get_desc2(info_element)
+        desc2_lower = desc2.lower()
         notes_element = get_notes(soup)
-        # print("NOTES: %s" % (notes_element))
+        notes_element_lower = notes_element.lower()
+
+        # print('DESC: "%s"' % (desc))
+        # print('DESC2: "%s"' % (desc2))
+        # print('NOTES: "%s"' % (notes_element))
 
         # TODO
-        watch.manufacturer = get_manufacturer(desc)  # DONE
-        watch.model_name = get_model_name(desc)  # DONE
-        watch.movement_number = get_movement_number(desc)
-        watch.material = get_material(desc)
-        watch.reference_number = get_reference_number(desc)
-        watch.year = get_year(desc)
+        watch.manufacturer = get_manufacturer(desc)
+        watch.model_name = get_model_name(desc)
+        watch.movement_number = get_movement_number(desc_lower)
+        watch.material = get_material(
+            desc2) if desc2.strip() != '' else get_material(desc)
+        watch.reference_number = get_reference_number(desc_lower)
+        watch.year = get_year(desc_lower)
         # TODO
         watch.case_number = get_case_number(desc)
         watch.bracelet_strap = get_bracelet_strap(desc)
