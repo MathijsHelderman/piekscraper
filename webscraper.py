@@ -104,6 +104,8 @@ def main():
     # movement number
     lot = Lot(
         1, "https://catalog.antiquorum.swiss/en/lots/omega-ref-st-105-003-lot-302-296?page=0")
+    lot = Lot(
+        1, "https://catalog.antiquorum.swiss/en/lots/omega-ref-st-105-003-lot-302-296?page=0")
 
     watch = scrape_watchinfo(lot)
     print(watch)
@@ -418,43 +420,83 @@ def get_diameter_detail(desc: str):
     return diameter
 
 
-def get_case_number(desc):
+def get_case_number(desc, desc2):
     try:
-        return get_desc_attr(desc, 'Case number')
+        case_number = ''
+        if desc2 ==  '': 
+            case_number = get_desc_attr(desc, 'case')
+        else:
+            case_number = get_desc_attr(desc, 'case')
+            if case_number == '':
+                case_number = get_desc_attr(desc2, 'case')
+        return case_number
     except Exception:
         return ''
 
 
-def get_calibre(desc):
+def get_calibre(desc, desc2):
     try:
-        cal = get_desc_attr(desc, 'Calibre')
-        if cal == '':
-            cal = get_desc_attr(desc, 'cal.')
-        if cal == '':
-            cal = get_desc_attr(desc, 'cal')
-        return cal
+        calibre = ""
+        search_word_index = desc.lower().find("cal.")
+        if search_word_index == -1: # Did not found search word
+            sw_index_desc2 = desc2.lower().find("cal.")
+            if sw_index_desc2 > 0:
+                calibre = desc2[sw_index_desc2:].split(',')[0]
+        else: 
+            calibre = desc2[sw_index_desc2:].split(',')[0]
+        return calibre
     except Exception:
         return ''
 
 
-def get_bracelet_strap(desc):
+def get_bracelet_strap(desc, desc2):
     try:
-        return get_desc_attr(desc, 'Closure')
+        bracelet = ''
+        if desc2 ==  '': 
+            bracelet = get_desc_attr(desc, 'bracelet').split('.')[0]
+        else:
+            bracelet = get_desc_attr(desc, 'bracelet').split('.')[0]
+            if bracelet == '':
+                bracelet = get_desc_attr(desc2, 'bracelet').split('.')[0]
+        return bracelet
     except Exception:
         return ''
 
 
-def get_accessoires(desc):
+def get_accessoires(desc, desc2):
     try:
-        # TODO: accompanied by:
-        return get_desc_attr(desc, 'Accessories')
+        accesoires = ""
+        search_word_index = desc.lower().find("accompanied")
+        if search_word_index == -1: # Did not found search word
+            sw_index_desc2 = desc2.lower().find("accompanied")
+            if sw_index_desc2 > 0: # Did found search word in desc2
+                accesoires = desc[search_word_index:].split(".")[0]
+        else:
+            accesoires = desc[search_word_index:].split(".")[0]
+        return accesoires
     except Exception:
         return ''
 
 
-def get_signed(desc):
+def get_signed(notes, desc, desc2):
     try:
-        return get_desc_attr(desc, 'Signed')
+        search_word = 'signed'
+        signed = ""
+        search_word_index_notes = notes.lower().find(search_word)
+        if search_word_index_notes == -1: # Did not found search word in notes
+            sw_index_desc = desc.lower().find(search_word)
+            if sw_index_desc > 0: # Did found search word in desc
+                desc = desc.split(".")
+                # https://stackoverflow.com/questions/13779526/finding-a-substring-within-a-list-in-python
+                signed = next((s for s in desc if search_word in s), None).lstrip() 
+            else: 
+                sw_index_desc2 = desc.lower().find(search_word)
+                if sw_index_desc2 > 0: # Did found search word in desc2
+                    desc2 = desc2.split(".")
+                    signed = next((s for s in desc if search_word in s), None).lstrip() 
+        else:
+            signed = notes[:search_word_index_notes].split(".")[0]
+        return signed
     except Exception:
         return ''
 
@@ -547,12 +589,12 @@ def scrape_watchinfo(lot):
         watch.reference_number = get_reference_number(desc_lower)
         watch.year = get_year(desc_lower)
         # TODO
-        watch.case_number = get_case_number(desc)
-        watch.bracelet_strap = get_bracelet_strap(desc)
-        watch.calibre = get_calibre(desc)
-        watch.diameter = get_diameter(notes_element, desc, desc2)
-        watch.signed = get_signed(notes_element)
-        watch.accessoires = get_accessoires(desc)
+        watch.case_number = get_case_number(desc, desc2) # DOING
+        watch.bracelet_strap = get_bracelet_strap(desc, desc2) 
+        watch.calibre = get_calibre(desc, desc2) # DONE
+        watch.diameter = get_diameter(notes_element, desc, desc2) # DONE
+        watch.signed = get_signed(notes_element, desc, desc2) # DONE
+        watch.accessoires = get_accessoires(desc, desc2) # DONE
 
     try:
         watch.currency = "".join(
