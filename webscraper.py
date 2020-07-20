@@ -445,9 +445,16 @@ def get_calibre(desc, desc2):
         return ''
 
 
-def get_bracelet_strap(desc):
+def get_bracelet_strap(desc, desc2):
     try:
-        return get_desc_attr(desc, 'bracelet').split('.')[0]
+        bracelet = ''
+        if desc2 ==  '': 
+            bracelet = get_desc_attr(desc, 'bracelet').split('.')[0]
+        else:
+            bracelet = get_desc_attr(desc, 'bracelet').split('.')[0]
+            if bracelet == '':
+                bracelet = get_desc_attr(desc2, 'bracelet').split('.')[0]
+        return bracelet
     except Exception:
         return ''
 
@@ -572,7 +579,7 @@ def scrape_watchinfo(lot):
         watch.year = get_year(desc)
         # TODO
         watch.case_number = get_case_number(desc, desc2) # DOING
-        watch.bracelet_strap = get_bracelet_strap(desc)
+        watch.bracelet_strap = get_bracelet_strap(desc, desc2) 
         watch.calibre = get_calibre(desc, desc2) # DONE
         watch.diameter = get_diameter(notes_element, desc, desc2) # DONE
         watch.signed = get_signed(notes_element, desc, desc2) # DONE
