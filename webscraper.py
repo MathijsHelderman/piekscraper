@@ -271,14 +271,35 @@ def get_model_name(desc):
 
 def get_movement_number(desc):
     try:
-        return get_desc_attr(desc, 'Movement number')
+        desc = desc.lower()
+        mvt = ''
+        mvt_index = -1
+
+        mvt = get_desc_attr(desc, 'mvt.')
+        if mvt != '':
+            mvt_index = mvt.find('mvt.')
+        else:
+            mvt = get_desc_attr(desc, 'movement number')
+            if mvt != '':
+                mvt_index = mvt.find('movement number')
+            else:
+                mvt = get_desc_attr(desc, 'mvt')
+                if mvt != '':
+                    mvt_index = mvt.find('mvt')
+
+        if mvt_index != -1:
+            mvt = mvt[mvt_index:]  # remove everything in front
+            mvt = mvt.split()
+            mvt = mvt[1]
+
+        return mvt
     except Exception:
         return ''
 
 
 def get_material(desc):
     try:
-        return get_desc_attr(desc, 'Case')
+        return get_desc_attr(desc, 'case')
     except Exception:
         return ''
 
@@ -289,6 +310,11 @@ def get_reference_number(desc):
         desc = desc.split()
         ref_index = -1
 
+        # TODO : should check every word
+        # in whole desc first, before checking every
+        # word against every word in the array.
+        # Now a word with lower preferability can be
+        # found first.
         for t in desc:
             if t.find('reference') >= 0:
                 ref_index = desc.index(t)
