@@ -25,18 +25,21 @@ class Website(ABC):
                     string = string[:index]
                     break
                 i += 1
+        elif loc == 'both':
+            string = self.remove_chars(string, 'start')
+            string = self.remove_chars(string, 'end')
         return string
 
-    def get_first_number(self, string):
-        # all numbers in the string of length 4, separated either by space ' ' or comma ','
-        number_array = [str(s) for s in string.split()
-                        if len(s) == 4 and s.isdigit()]
-        if len(number_array) == 0:
-            number_array = [str(s) for s in string.split(',')
-                            if len(s) == 4 and s.isdigit()]
+    def get_first_valid_year(self, string):
+        number_array = []
+        s_array = string.split(' ')
+        for s in s_array:
+            s = self.remove_chars(s, 'both')
+            if (len(s) == 4 and s.isdigit()) and (int(s) > 1700 and int(s) <= 2020):
+                number_array.append(s)
 
         # print('numbarr:', number_array)
-        # return the first 4 digit number
+        # return the first possible year
         return number_array[0] if len(number_array) > 0 else ''
 
     def is_watch(self, watch):
@@ -50,6 +53,18 @@ class Website(ABC):
         #     return False
         # else:
         return True if isinstance(watch, Watch) else False
+
+    def clean_string(self, string):
+        """
+        Replace all ascii characters with a "normal" space.
+        Remove leading and trailing unwanted characters.
+        """
+        unwanted_lead_or_trail_chars = ' ,.;•'
+
+        string = string.replace('\xa0', ' ')
+        string = string.lstrip(unwanted_lead_or_trail_chars)
+        string = string.rstrip(unwanted_lead_or_trail_chars)
+        return string
 
     # Generic
     @abstractmethod

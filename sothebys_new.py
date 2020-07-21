@@ -103,7 +103,7 @@ class Sothebys_new(Website):
     def get_next_url(self, nav_con):
         try:
             base_url = self._DOMAIN_URL
-            next_url = nav_con.find('a', {'class': 'css-14g6ay4'})['href']
+            next_url = nav_con.find('a', {'class': 'css-1tgvpkp'})['href']
             next_url = base_url + next_url
             # print("Next url:", next_url)
             return next_url

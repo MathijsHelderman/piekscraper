@@ -41,9 +41,10 @@ from antiquorum_old import Antiquorum_old
 
 
 # SETUP
-_SCRAPING_WEBSITE = 'Antiquorum'
-_EXCEL_NAME = 'antiquorum_list_1'
-_DEV = True
+_SCRAPING_WEBSITE = 'Sothebys'
+_EXCEL_NAME = 'test'
+_DEV = False
+_PRINT_WATCH = False
 
 #
 # CONSTANTS
@@ -141,26 +142,51 @@ def get_watch_info(w: Website, auction: Auction, url: str, auction_name: str):
             else:
                 date = w.get_date_sold(soup)
 
+            # watch = Watch(
+            #     # Important
+            #     w.get_manufacturer(desc),
+            #     w.get_year(desc),
+            #     w.get_reference_number(desc),
+            #     w.get_model_name(desc),
+            #     w.get_sold_for(detail_con),
+            #     w.get_estimate_minimum(detail_con),
+            #     w.get_estimate_maximum(detail_con),
+            #     date,
+            #     w.get_material(desc),
+            #     w.get_case_number(desc),
+            #     w.get_description_condition(soup),
+            #     # Optional
+            #     w.get_diameter(desc),
+            #     w.get_movement_number(desc),
+            #     w.get_calibre(desc),
+            #     w.get_bracelet_strap(desc),
+            #     w.get_accessoires(desc),
+            #     w.get_signed(desc),
+            #     auction_name,
+            #     auction.currency,
+            #     w.get_lot_number(detail_con),
+            #     url
+            # )
             watch = Watch(
                 # Important
-                w.get_manufacturer(desc),
+                '',
                 w.get_year(desc),
                 w.get_reference_number(desc),
-                w.get_model_name(desc),
-                w.get_sold_for(detail_con),
-                w.get_estimate_minimum(detail_con),
-                w.get_estimate_maximum(detail_con),
-                date,
-                w.get_material(desc),
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
                 w.get_case_number(desc),
-                w.get_description_condition(soup),
+                '',
                 # Optional
-                w.get_diameter(desc),
+                '',
                 w.get_movement_number(desc),
-                w.get_calibre(desc),
-                w.get_bracelet_strap(desc),
-                w.get_accessoires(desc),
-                w.get_signed(desc),
+                '',
+                '',
+                '',
+                '',
                 auction_name,
                 auction.currency,
                 w.get_lot_number(detail_con),
@@ -173,7 +199,7 @@ def get_watch_info(w: Website, auction: Auction, url: str, auction_name: str):
         else:
             print("Error! Something went wrong. Response code:",
                   response.status_code)
-            exit()
+            return -2, url
     except requests.exceptions.RequestException as err:
         print('\n\nError:', err)
         return -2, url
@@ -203,18 +229,6 @@ def get_watches_from_auction(auction: Auction):
         w = get_correct_website(next_url)
         watch, next_url = get_watch_info(w, auction, next_url, auction_name)
 
-        # Make sure the program does not end up in an endless loop
-        if first_url_done == False:
-            first_url_done = True
-        elif next_url == auction.first_url:
-            next_url = ''
-        elif next_url == last_url:
-            index = next_url.find('/lot.')
-            new_lot_number = int(watch.lot_number) + 1
-            new_end_url_string = '/lot.' + str(new_lot_number) + '.html'
-            new_url = next_url[:index] + new_end_url_string
-            next_url = new_url
-
         # print("\rLot: %d" % counter, end="\r")
         if watch == -1:
             # Error with page
@@ -228,8 +242,26 @@ def get_watches_from_auction(auction: Auction):
         elif w.is_watch(watch):
             watch_list.append(watch)
             counter += 1
-            print("--- Number of watches in auction: %d ---" %
-                  counter, end="\r")
+            if _DEV:
+                print("--- Number of watches in auction: %d ---" %
+                      counter, end="\n")
+                if _PRINT_WATCH:
+                    print(watch)
+            else:
+                print("--- Number of watches in auction: %d ---" %
+                      counter, end="\r")
+
+            # Make sure the program does not end up in an endless loop
+            if first_url_done == False:
+                first_url_done = True
+            elif next_url == auction.first_url:
+                next_url = ''
+            elif next_url == last_url:
+                index = next_url.find('/lot.')
+                new_lot_number = int(watch.lot_number) + 1
+                new_end_url_string = '/lot.' + str(new_lot_number) + '.html'
+                new_url = next_url[:index] + new_end_url_string
+                next_url = new_url
 
         if counter == _MAX_NUMBER_OF_REQUESTS_PER_ACUCTION and not _DEV:
             print('ERROR! Too many lots in one auction, infinite loop...')
@@ -241,6 +273,7 @@ def get_watches_from_auction(auction: Auction):
           (time.time() - start_time))
     return watch_list, counter
 
+
 def get_watches_from_website():
     total_list = []
     total_number_of_watches = 0
@@ -248,15 +281,20 @@ def get_watches_from_website():
 
     index = 0
     l = len(_AUCTIONS)
+    if l == 0:
+        print("ERROR! No auctions found!")
+        exit()
     printProgressBar(index, l)
 
     for auction in _AUCTIONS:
-        if _SCRAPING_WEBSITE == 'Antiquorum':
-            auction = createAuctionFromURL(auction) ## TODO: Make this nicer
-        auction_watch_list, number_of_watches = get_watches_from_auction(
-            auction)
-        total_list += auction_watch_list
-        total_number_of_watches += number_of_watches
+        if index > 30:
+            # if _SCRAPING_WEBSITE == 'Antiquorum':
+            #     auction = createAuctionFromURL(auction)  # TODO: Make this nicer
+            auction_watch_list, number_of_watches = get_watches_from_auction(
+                auction)
+            total_list += auction_watch_list
+            total_number_of_watches += number_of_watches
+            format_watch_list_to_xlsx(total_list, "auction" + str(index))
         index += 1
         printProgressBar(index, l)
 
@@ -274,8 +312,7 @@ def createAuctionFromURL(auction_url: str):
     """
 
 
-
-def format_watch_list_to_xlsx(watch_list):
+def format_watch_list_to_xlsx(watch_list, name=_EXCEL_NAME):
     start_time = time.time()
     if len(watch_list) == 0:
         raise Exception('No watches in watch_list.')
@@ -340,14 +377,14 @@ def format_watch_list_to_xlsx(watch_list):
             sheet.append(sheet_data)
 
             index += 1
-            printProgressBar(index, l, '\rWatches converted:', '\r', '\r')
+            printProgressBar(index, l, 'Watches converted:', '\r', '\r')
 
         print('\n--- Done adding watches to Excel file ---')
-        path = '/Users/matti/Desktop/' + _EXCEL_NAME + '.xlsx'
+        path = '/Users/matti/Desktop/piekscraper_excel/' + name + '.xlsx'
         print('--- Saving Excel file to:"%s" ---' % path)
         workbook.save(filename=path)
         print('--- Excel file saved ---')
-        print("--- Excel file creation time: %s seconds ---" %
+        print("--- Excel file creation time: %s seconds ---\n" %
               (time.time() - start_time))
     except Exception as err:
         print('Error while creating Excel file:', err)

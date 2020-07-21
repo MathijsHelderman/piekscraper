@@ -187,4 +187,5 @@ test_auctions = [
     Auction('https://www.sothebys.com/en/buy/auction/2020/watches-online-2/f-p-journe-centigraphe-souverain-ref-cts-aluminium',
             '01-01-1000', 'EUR'),  # TEST
     Auction('https://www.sothebys.com/en/auctions/ecatalogue/2013/important-watches-hk0476/lot.2457.html', '08-10-2013', 'HKD'),
+    Auction('https://www.sothebys.com/en/auctions/ecatalogue/2009/important-watches-ge0901/lot.5.html', '08-10-2013', 'HKD'),
 ]

@@ -10,11 +10,6 @@ from watch import Watch
 
 
 class Antiquorum_old(Website):
-    _LOTS
-    _LOT_INDEX = 0
-
-    __init__():
-        _LOTS =
 
     # Generic
     def get_auction_name(self, url):
@@ -151,7 +146,7 @@ class Antiquorum_old(Website):
             return ''
 
     def get_next_url(self, nav_con):
-
+        return ''
 
     def get_lot_detail(self, desc):
         detail = desc.find(
@@ -192,17 +187,17 @@ class Antiquorum_old(Website):
                 if circa >= 0:
                     year = text[circa:]
                     year = super().remove_chars(year, 'start')
-                    year = super().get_first_number(year)
+                    year = super().get_first_valid_year(year)
 
                 else:
                     made_in = text.find('MADE IN')
                     if made_in >= 0:
                         year = text[made_in:]
                         year = super().remove_chars(year, 'start')
-                        year = super().get_first_number(year)
+                        year = super().get_first_valid_year(year)
                     else:
                         # Else search for the first 4 digit number and hope it's the correct year
-                        year = super().get_first_number(text)
+                        year = super().get_first_valid_year(text)
 
                 year = year.replace('\xa0', ' ')
                 return year

@@ -10,17 +10,7 @@ from website import Website
 
 
 class Sothebys_old(Website):
-
-    # Generic
-    def get_auction_name(self, url):
-        index = url.find('auctions')
-        url = url[index:]
-        url_blocks = url.split('/')
-        for part in url_blocks:
-            if part.find('ecatalogue') >= 0:
-                url_blocks.remove(part)
-        return url_blocks[1] + ': ' + url_blocks[2]
-
+    # HELPERS
     def check_error_url(self, soup):
         try:
             text = soup.find('div', attrs={'class': 'notfound-top-text'}).find(
@@ -33,25 +23,6 @@ class Sothebys_old(Website):
                 print('Error sothebys old check_error_url():', err)
                 return False
 
-    def get_nav_con(self, soup):
-        nav_con = soup.find('div', attrs={'class', 'lot-navigation'})
-        # print('Navcon:', nav_con)
-        # print('Navcon len:', len(nav_con))
-        return nav_con
-
-    def get_detail_con(self, soup):
-        detail_con = soup.find('div', attrs={'class': 'lotdetail-header'})
-        # print('Navcon:', detail_con)
-        # print('Navcon len:', len(detail_con))
-        return detail_con
-
-    def get_desc(self, soup):
-        desc = soup.find(
-            'div', attrs={'class': 'lotdetail-details-content'})
-        # print('desc:', desc)
-        # print('desc len:', len(desc))
-        return desc
-
     def get_desc_index_of_attr(self, desc, attr):
         i = 0
         for part in desc:
@@ -62,23 +33,6 @@ class Sothebys_old(Website):
                 return i
             i += 1
         return -1
-
-    # def get_desc_attr(self, desc, attr):
-    #     if desc.find('•') >= 0:
-    #         print('middle')
-    #     elif desc.find(',')>=
-
-    #     index = self.get_desc_index_of_attr(desc, attr)
-    #     a = ''
-    #     if index != -1:
-    #         a = desc[index]
-    #         for tag in a.find_all('strong'):
-    #             tag.decompose()
-    #         a = a.get_text()
-    #         a = a.replace('\xa0', ' ')
-    #         a = a.lstrip(": ").lstrip()
-    #     # print("%s: %s" % (attr, a))
-    #     return a
 
     def get_desc_attr(self, desc, attr):
         a = ''
@@ -136,6 +90,50 @@ class Sothebys_old(Website):
         # print("\n%s: %s" % (attr, a), end='\n')
         return a
 
+    # GETTERS GENERIC
+    def get_nav_con(self, soup):
+        nav_con = soup.find('div', attrs={'class', 'lot-navigation'})
+        # print('Navcon:', nav_con)
+        # print('Navcon len:', len(nav_con))
+        return nav_con
+
+    def get_detail_con(self, soup):
+        detail_con = soup.find('div', attrs={'class': 'lotdetail-header'})
+        # print('Navcon:', detail_con)
+        # print('Navcon len:', len(detail_con))
+        return detail_con
+
+    def get_desc(self, soup):
+        desc = soup.find(
+            'div', attrs={'class': 'lotdetail-details-content'})
+        # print('desc:', desc)
+        # print('desc len:', len(desc))
+        return desc
+
+    def get_lot_detail(self, desc):
+        detail = desc.find(
+            'div', attrs={'class': 'lotdetail-subtitle'})
+        NoneType = type(None)  # pylint: disable=unused-argument
+        if detail is not None:
+            detail = detail.get_text()
+        else:
+            detail = desc.find(
+                'div', attrs={'class': 'lotdetail-guarantee'})
+            if detail is not None:
+                detail = detail.get_text()
+            else:
+                detail = None
+        return detail
+
+    def get_auction_name(self, url):
+        index = url.find('auctions')
+        url = url[index:]
+        url_blocks = url.split('/')
+        for part in url_blocks:
+            if part.find('ecatalogue') >= 0:
+                url_blocks.remove(part)
+        return url_blocks[1] + ': ' + url_blocks[2]
+
     def get_lot_number(self, detail_con):
         try:
             lot = detail_con.find(
@@ -159,22 +157,8 @@ class Sothebys_old(Website):
             else:
                 print('Error!', err.args)
 
-    def get_lot_detail(self, desc):
-        detail = desc.find(
-            'div', attrs={'class': 'lotdetail-subtitle'})
-        NoneType = type(None)  # pylint: disable=unused-argument
-        if detail is not None:
-            detail = detail.get_text()
-        else:
-            detail = desc.find(
-                'div', attrs={'class': 'lotdetail-guarantee'})
-            if detail is not None:
-                detail = detail.get_text()
-            else:
-                detail = None
-        return detail
+    # GETTERS Watch
 
-    # Watch
     def get_manufacturer(self, desc):
         try:
             mf = desc.find(
@@ -194,53 +178,54 @@ class Sothebys_old(Website):
             if text is None:
                 return ''
             else:
-                circa = text.find('CIRCA')
-                if circa >= 0:
-                    year = text[circa:]
+                text = text.lower()
+                year = ''
+
+                year_index = text.find('circa')
+                if year_index == -1:
+                    year_index = text.find('made in')
+                if year_index == -1:
+                    year_index = text.find('made ')
+                if year_index == -1:
+                    year_index = text.find('built ')
+                if year_index == -1:
+                    year_index = text.find('year ')
+
+                if year_index >= 0:
+                    year = text[year_index:]
                     year = super().remove_chars(year, 'start')
-                    year = super().get_first_number(year)
-
+                    year = super().get_first_valid_year(year)
                 else:
-                    made_in = text.find('MADE IN')
-                    if made_in >= 0:
-                        year = text[made_in:]
-                        year = super().remove_chars(year, 'start')
-                        year = super().get_first_number(year)
-                    else:
-                        # Else search for the first 4 digit number and hope it's the correct year
-                        year = super().get_first_number(text)
+                    year = super().get_first_valid_year(text)
 
-                year = year.replace('\xa0', ' ')
+                year = super().clean_string(year)
+                # print("Year: %s" % year)
                 return year
         except Exception:
             return ''
 
     def get_reference_number(self, desc):
         try:
-            text = self.get_lot_detail(desc)
+            desc = self.get_lot_detail(desc)
+            desc = desc.lower()
+            ref = ''
+            ref_index = -1
+            ref_synonyms = ['reference', 'ref.', 'ref', 'no.', 'no']
 
-            if text is None:
-                return ''
-            else:
-                text = text.split()
-                ref_index = -1
-                for t in text:
-                    if t == 'REF':
-                        ref_index = text.index(t)
-                        break
-                    elif t == 'REFERENCE':
-                        ref_index = text.index(t)
-                        break
-                    elif t == 'REF.':
-                        ref_index = text.index(t)
-                        break
+            for synonym in ref_synonyms:
+                ref_index = desc.find(synonym)
+                if ref_index >= 0:
+                    ref_index = ref_index + len(synonym)
+                    break
 
-                if ref_index == -1:
-                    return ''
-                else:
-                    ref = text[(ref_index + 1)]
-                    # print('ref:', ref)
-                    return ref
+            if ref_index >= 0:
+                ref = desc[ref_index:]
+                ref = ref.split()
+                ref = ref[0]
+
+            ref = super().clean_string(ref)
+            # print("Ref: %s" % ref)
+            return ref
         except Exception:
             return ''
 
@@ -301,7 +286,26 @@ class Sothebys_old(Website):
 
     def get_case_number(self, desc):
         try:
-            return self.get_desc_attr(desc, 'Case number')
+            desc = self.get_lot_detail(desc)
+            desc = desc.lower()
+            case = ''
+            case_index = -1
+            case_synonyms = ['case no', 'case number', 'case']
+
+            for synonym in case_synonyms:
+                case_index = desc.find(synonym)
+                if case_index >= 0:
+                    case_index = case_index + len(synonym)
+                    break
+
+            if case_index >= 0:
+                case = desc[case_index:]
+                case = case.split()
+                case = case[0]
+
+            case = super().clean_string(case)
+            # print("Case: %s" % case)
+            return case
         except Exception:
             return ''
 
@@ -331,7 +335,26 @@ class Sothebys_old(Website):
 
     def get_movement_number(self, desc):
         try:
-            return self.get_desc_attr(desc, 'Movement number')
+            desc = self.get_lot_detail(desc)
+            desc = desc.lower()
+            mvt = ''
+            mvt_index = -1
+            mvt_synonyms = ['movement no', 'mvt.', 'movement number', 'mvt']
+
+            for synonym in mvt_synonyms:
+                mvt_index = desc.find(synonym)
+                if mvt_index >= 0:
+                    mvt_index = mvt_index + len(synonym)
+                    break
+
+            if mvt_index >= 0:
+                mvt = desc[mvt_index:]
+                mvt = mvt.split()
+                mvt = mvt[0]
+
+            mvt = super().clean_string(mvt)
+            # print("Movement: %s" % mvt)
+            return mvt
         except Exception:
             return ''
 
