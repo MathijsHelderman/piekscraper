@@ -1,13 +1,10 @@
-# LOGBOEK:
-# 21:30 - 22:30
-
 # TODO:
 # Pick a site DONE
 # Analyze pagem DONE
-# Write code
+# Write code DONE
 
 # Choices:
-# Antiquorum (most data) => seems easy lets try
+# Antiquorum (most data) 
 # Bonhams
 # Christies
 
